@@ -15,28 +15,28 @@ from selenium.webdriver.support import expected_conditions as EC
 from bs4 import BeautifulSoup
 
 # 配置 Telegram Token 以及自己的 Chat_ID
-Telegram_token = '6457005566:AAGPrMMEcndcNmXxO_ElGQEVPZeDbef40hk'
+Telegram_token = '你的 Telegram Token'
 chat_ids_file = "C:\\Users\\No_tH\\Desktop\\chat_ids.txt"
 
 # 初始化 Telegram Bot
 application = Application.builder().token(Telegram_token).build()
 
 def load_chat_ids():
-    """加载所有用户的 Chat ID"""
+    """加載所有使用者的 Chat ID"""
     if os.path.exists(chat_ids_file):
         with open(chat_ids_file, "r") as file:
             return set(file.read().splitlines())
     return set()
 
 def save_chat_id(chat_id):
-    """保存新的用户 Chat ID"""
+    """保存新的使用者 Chat ID"""
     chat_ids = load_chat_ids()
     if chat_id not in chat_ids:
         with open(chat_ids_file, "a") as file:
             file.write(f"{chat_id}\n")
 
 def load_processed_ids():
-    """加载已處理的漏洞 ID"""
+    """加載已處理的漏洞 ID"""
     processed_ids_file = "C:\\Users\\No_tH\\Desktop\\processed_ids.txt"
     if os.path.exists(processed_ids_file):
         with open(processed_ids_file, "r") as file:
@@ -102,24 +102,24 @@ async def scrape_and_notify():
         save_processed_ids(processed_ids)
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """处理 /start 命令，保存用户 Chat ID 并抓取漏洞"""
+    """處理 /start 命令，保存使用者 Chat ID 並抓取漏洞"""
     chat_id = str(update.message.chat_id)
     save_chat_id(chat_id)
-    await context.bot.send_message(chat_id=chat_id, text="You have been subscribed to ZD notifications!")
+    await context.bot.send_message(chat_id=chat_id, text="你已經訂閱了 ZD 通知！")
     
-    # 触发漏洞抓取并通知
+    # 觸發漏洞抓取並通知
     await scrape_and_notify()
 
-# 添加处理 /start 命令的处理器
+# 添加處理 /start 命令的處理器
 start_handler = CommandHandler('start', start)
 application.add_handler(start_handler)
 
-# 启动 Bot
+# 啟動 Bot
 application.run_polling()
 
 def run_scrape_and_notify():
     asyncio.run(scrape_and_notify())
 
-# 调用主函数进行测试
+# 調用主函數進行測試
 run_scrape_and_notify()
 exit()
