@@ -2,6 +2,7 @@
 # _*_ coding:utf-8 _*_
 # Author : Noth
 # Time : 2024-8-11
+
 from telegram import Update
 from telegram.ext import Application, CommandHandler, ContextTypes
 import os, sys
@@ -12,32 +13,20 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.common.exceptions import TimeoutException  # 导入 TimeoutException
 from bs4 import BeautifulSoup
+from webdriver_manager.chrome import ChromeDriverManager
 
-# 配置 Telegram Token 以及自己的 Chat_ID
-Telegram_token = '你的 Telegram Token'
-chat_ids_file = "C:\\Users\\No_tH\\Desktop\\chat_ids.txt"
+# 配置 Telegram Token 以及群组 ID (-4101931565)
+Telegram_token = 'telegram bot Token'
+group_id = -4101931565  # 指定群组 ID
 
 # 初始化 Telegram Bot
 application = Application.builder().token(Telegram_token).build()
 
-def load_chat_ids():
-    """加載所有使用者的 Chat ID"""
-    if os.path.exists(chat_ids_file):
-        with open(chat_ids_file, "r") as file:
-            return set(file.read().splitlines())
-    return set()
-
-def save_chat_id(chat_id):
-    """保存新的使用者 Chat ID"""
-    chat_ids = load_chat_ids()
-    if chat_id not in chat_ids:
-        with open(chat_ids_file, "a") as file:
-            file.write(f"{chat_id}\n")
-
 def load_processed_ids():
-    """加載已處理的漏洞 ID"""
-    processed_ids_file = "C:\\Users\\No_tH\\Desktop\\processed_ids.txt"
+    """加载已处理的漏洞 ID"""
+    processed_ids_file = "C:\\Users\\T124375136\\Desktop\\processed_ids.txt"
     if os.path.exists(processed_ids_file):
         with open(processed_ids_file, "r") as file:
             return set(file.read().splitlines())
@@ -45,31 +34,34 @@ def load_processed_ids():
 
 def save_processed_ids(processed_ids):
     """保存新的漏洞 ID"""
-    processed_ids_file = "C:\\Users\\No_tH\\Desktop\\processed_ids.txt"
+    processed_ids_file = "C:\\Users\\T124375136\\Desktop\\processed_ids.txt"
     with open(processed_ids_file, "w") as file:
         file.write("\n".join(processed_ids))
 
 async def scrape_and_notify():
-    # 配置 ChromeDriver 路徑
-    chrome_driver_path = r"C:\Users\No_tH\Desktop\chromedriver-win64\chromedriver.exe"
-    service = Service(chrome_driver_path)
-
+    # 配置 ChromeDriver 路径
     chrome_options = Options()
-    chrome_options.add_argument('--ignore-certificate-errors')  # 忽略 SSL 證書錯誤選項
-    chrome_options.add_argument('--ignore-ssl-errors')          # 忽略 SSL 證書錯誤選項
+    chrome_options.add_argument('--ignore-certificate-errors')  # 忽略 SSL 证书错误选项
+    chrome_options.add_argument('--ignore-ssl-errors')          # 忽略 SSL 证书错误选项
 
     # 初始化 ChromeDriver
     print("Initializing ChromeDriver...")
+    service = Service(ChromeDriverManager().install())
     driver = webdriver.Chrome(service=service, options=chrome_options)
 
     url = 'https://zeroday.hitcon.org/vulnerability/disclosed'
     driver.get(url)
 
     try:
-        element = WebDriverWait(driver, 5).until(
+        element = WebDriverWait(driver, 10).until(
             EC.presence_of_element_located((By.CLASS_NAME, "title tx-overflow-ellipsis"))
         )
-    finally:
+    except TimeoutException:
+        # 忽略超时错误，继续执行代码
+        print("Timeout occurred, but continuing...")
+        pass
+
+    try:
         page_code = driver.page_source
         soup = BeautifulSoup(page_code, 'html.parser')
         titles = soup.find_all('h4', class_='title tx-overflow-ellipsis')
@@ -91,35 +83,19 @@ async def scrape_and_notify():
             message = f"{ZD_id}, 標題: {text}\n {full_link}"
             print(f"Sending message: {message}")
 
-            chat_ids = load_chat_ids()
-            for chat_id in chat_ids:
-                await application.bot.send_message(chat_id=chat_id, text=message)
+            # 将消息发送到指定的群组
+            await application.bot.send_message(chat_id=group_id, text=message)
 
             new_ids.add(ZD_id)
 
-        driver.quit()
         processed_ids.update(new_ids)
         save_processed_ids(processed_ids)
+    except Exception as e:
+        print(f"An error occurred during processing: {e}")
+    finally:
+        driver.quit()
 
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """處理 /start 命令，保存使用者 Chat ID 並抓取漏洞"""
-    chat_id = str(update.message.chat_id)
-    save_chat_id(chat_id)
-    await context.bot.send_message(chat_id=chat_id, text="你已經訂閱了 ZD 通知！")
-    
-    # 觸發漏洞抓取並通知
-    await scrape_and_notify()
-
-# 添加處理 /start 命令的處理器
-start_handler = CommandHandler('start', start)
-application.add_handler(start_handler)
-
-# 啟動 Bot
-application.run_polling()
-
-def run_scrape_and_notify():
+if __name__ == "__main__":
+    # 如果你只想执行一次爬取任务并退出
     asyncio.run(scrape_and_notify())
-
-# 調用主函數進行測試
-run_scrape_and_notify()
-exit()
+    sys.exit(0)  # 明确退出程序
