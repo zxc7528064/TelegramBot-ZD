@@ -13,19 +13,19 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.common.exceptions import TimeoutException  # 导入 TimeoutException
+from selenium.common.exceptions import TimeoutException  # 導入 TimeoutException
 from bs4 import BeautifulSoup
 from webdriver_manager.chrome import ChromeDriverManager
 
-# 配置 Telegram Token 以及群组 ID (-4101931565)
-Telegram_token = 'telegram bot Token'
-group_id = -4101931565  # 指定群组 ID
+# 配置 Telegram Token 以及群組 ID (-4101931565)
+Telegram_token = '更改'
+group_id = -4101931565  # 指定群組 ID
 
 # 初始化 Telegram Bot
 application = Application.builder().token(Telegram_token).build()
 
 def load_processed_ids():
-    """加载已处理的漏洞 ID"""
+    """加載已處理的漏洞 ID"""
     processed_ids_file = "C:\\Users\\T124375136\\Desktop\\processed_ids.txt"
     if os.path.exists(processed_ids_file):
         with open(processed_ids_file, "r") as file:
@@ -39,10 +39,10 @@ def save_processed_ids(processed_ids):
         file.write("\n".join(processed_ids))
 
 async def scrape_and_notify():
-    # 配置 ChromeDriver 路径
+    # 配置 ChromeDriver 路徑
     chrome_options = Options()
-    chrome_options.add_argument('--ignore-certificate-errors')  # 忽略 SSL 证书错误选项
-    chrome_options.add_argument('--ignore-ssl-errors')          # 忽略 SSL 证书错误选项
+    chrome_options.add_argument('--ignore-certificate-errors')  # 忽略 SSL 證書錯誤選項
+    chrome_options.add_argument('--ignore-ssl-errors')          # 忽略 SSL 證書錯誤選項
 
     # 初始化 ChromeDriver
     print("Initializing ChromeDriver...")
@@ -57,7 +57,7 @@ async def scrape_and_notify():
             EC.presence_of_element_located((By.CLASS_NAME, "title tx-overflow-ellipsis"))
         )
     except TimeoutException:
-        # 忽略超时错误，继续执行代码
+        # 忽略超時錯誤，繼續執行代碼
         print("Timeout occurred, but continuing...")
         pass
 
@@ -83,7 +83,7 @@ async def scrape_and_notify():
             message = f"{ZD_id}, 標題: {text}\n {full_link}"
             print(f"Sending message: {message}")
 
-            # 将消息发送到指定的群组
+            # 將消息發送到指定的群組
             await application.bot.send_message(chat_id=group_id, text=message)
 
             new_ids.add(ZD_id)
@@ -96,6 +96,6 @@ async def scrape_and_notify():
         driver.quit()
 
 if __name__ == "__main__":
-    # 如果你只想执行一次爬取任务并退出
+    # 如果你只想執行一次爬取任務並退出
     asyncio.run(scrape_and_notify())
-    sys.exit(0)  # 明确退出程序
+    sys.exit(0)  # 明確退出程序
