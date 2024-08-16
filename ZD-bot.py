@@ -18,7 +18,7 @@ from bs4 import BeautifulSoup
 from webdriver_manager.chrome import ChromeDriverManager
 
 # 配置 Telegram Token 以及群組 ID (-4101931565)
-Telegram_token = '修改Token'
+Telegram_token = '修改Token值'
 group_id = -4101931565  # 指定群組 ID
 
 # 初始化 Telegram Bot
