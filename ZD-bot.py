@@ -26,7 +26,7 @@ application = Application.builder().token(Telegram_token).build()
 
 def load_processed_ids():
     """加載已處理的漏洞 ID"""
-    processed_ids_file = "C:\\Users\\T124375136\\Desktop\\processed_ids.txt"
+    processed_ids_file = "C:\\Users\\xxxx\\Desktop\\processed_ids.txt"
     if os.path.exists(processed_ids_file):
         with open(processed_ids_file, "r") as file:
             return set(file.read().splitlines())
@@ -34,7 +34,7 @@ def load_processed_ids():
 
 def save_processed_ids(processed_ids):
     """保存新的漏洞 ID"""
-    processed_ids_file = "C:\\Users\\T124375136\\Desktop\\processed_ids.txt"
+    processed_ids_file = "C:\\Users\\xxxx\\Desktop\\processed_ids.txt"
     with open(processed_ids_file, "w") as file:
         file.write("\n".join(processed_ids))
 
